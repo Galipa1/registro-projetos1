@@ -1,0 +1,158 @@
+
+<div id="uml"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#3C3489' : '#EEEDFE',
+    primaryBorderColor: dark ? '#534AB7' : '#7F77DD',
+    secondaryColor: dark ? '#085041' : '#E1F5EE',
+    tertiaryColor: dark ? '#083050' : '#E6F1FB',
+  },
+});
+const diagram = `classDiagram
+  direction TB
+
+  class Projetista {
+    -Long id
+    -String codigoFuncional
+    -String nome
+    -LocalDate dataNascimento
+    +toString() String
+  }
+  class Cliente {
+    -Long id
+    -String cpf
+    -String nome
+    -LocalDate dataNascimento
+    +toString() String
+  }
+  class Projeto {
+    -Long id
+    -Integer numero
+    -LocalDate dataInicio
+    -LocalDate dataTermino
+    -String descricao
+    -Projetista projetista
+    -Cliente cliente
+  }
+
+  class IProjetistaRepository {
+    <<interface>>
+    +salvar(p) Projetista
+    +buscarPorId(id) Optional
+    +buscarTodos() List
+    +deletar(id) void
+    +existePorCodigo(c) boolean
+  }
+  class IClienteRepository {
+    <<interface>>
+    +salvar(c) Cliente
+    +buscarPorId(id) Optional
+    +buscarTodos() List
+    +deletar(id) void
+    +existePorCpf(cpf) boolean
+  }
+  class IProjetoRepository {
+    <<interface>>
+    +salvar(p) Projeto
+    +buscarPorId(id) Optional
+    +buscarTodos() List
+    +deletar(id) void
+    +existePorNumero(n) boolean
+  }
+
+  class IProjetistaService {
+    <<interface>>
+    +cadastrar(p) Projetista
+    +buscarPorId(id) Projetista
+    +listarTodos() List
+    +remover(id) void
+  }
+  class IClienteService {
+    <<interface>>
+    +cadastrar(c) Cliente
+    +buscarPorId(id) Cliente
+    +listarTodos() List
+    +remover(id) void
+  }
+  class IProjetoService {
+    <<interface>>
+    +registrar(p) Projeto
+    +buscarPorId(id) Projeto
+    +listarTodos() List
+    +remover(id) void
+  }
+  class IDataInicioValidator {
+    <<interface>>
+    +validar(data) void
+  }
+
+  class ProjetistaServiceImpl {
+    -IProjetistaRepository repo
+    +cadastrar(p) Projetista
+    +buscarPorId(id) Projetista
+    +listarTodos() List
+    +remover(id) void
+  }
+  class ClienteServiceImpl {
+    -IClienteRepository repo
+    +cadastrar(c) Cliente
+    +buscarPorId(id) Cliente
+    +listarTodos() List
+    +remover(id) void
+  }
+  class ProjetoServiceImpl {
+    -IProjetoRepository repo
+    -IProjetistaService projetistaService
+    -IClienteService clienteService
+    -IDataInicioValidator validator
+    +registrar(p) Projeto
+    +buscarPorId(id) Projeto
+    +listarTodos() List
+    +remover(id) void
+  }
+  class DataInicioValidator {
+    +validar(data) void
+  }
+  class AppContext {
+    -IProjetistaService projetistaService
+    -IClienteService clienteService
+    -IProjetoService projetoService
+    +getProjetistaService() IProjetistaService
+    +getClienteService() IClienteService
+    +getProjetoService() IProjetoService
+  }
+
+  Projeto "N" --> "1" Projetista : responsável
+  Projeto "N" --> "1" Cliente : solicitante
+
+  ProjetistaServiceImpl ..|> IProjetistaService
+  ClienteServiceImpl    ..|> IClienteService
+  ProjetoServiceImpl    ..|> IProjetoService
+  DataInicioValidator   ..|> IDataInicioValidator
+
+  ProjetistaServiceImpl --> IProjetistaRepository
+  ClienteServiceImpl    --> IClienteRepository
+  ProjetoServiceImpl    --> IProjetoRepository
+  ProjetoServiceImpl    --> IProjetistaService
+  ProjetoServiceImpl    --> IClienteService
+  ProjetoServiceImpl    --> IDataInicioValidator
+
+  AppContext --> IProjetistaService
+  AppContext --> IClienteService
+  AppContext --> IProjetoService
+`;
+const { svg } = await mermaid.render('uml-svg', diagram);
+document.getElementById('uml').innerHTML = svg;
+</script>

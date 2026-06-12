@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototipação — Sistema de Registro de Projetos</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #0e0e10;
+  color: #f0efe8;
+  padding: 40px 24px;
+}
+header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.tag {
+  display: inline-block;
+  background: rgba(124,106,245,0.15);
+  border: 1px solid rgba(124,106,245,0.35);
+  color: #9d8ff7;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 8px; }
+.subtitle { font-size: 14px; color: #7a7a82; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c6af5;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 20px; height: 2px;
+  background: #7c6af5;
+  border-radius: 2px;
+}
+
+/* Moldura da janela */
+.window {
+  border: 1px solid #2e2e36;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 56px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+.titlebar {
+  background: #141418;
+  border-bottom: 1px solid #2e2e36;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.r { background: #ff5f57; }
+.dot.y { background: #febc2e; }
+.dot.g { background: #28c840; }
+.win-title {
+  font-size: 12px;
+  color: #5a5a62;
+  margin: 0 auto;
+  font-family: 'Consolas', monospace;
+}
+
+/* Layout do app */
+.app { display: flex; height: 480px; }
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background: #17171a;
+  border-right: 1px solid #2e2e36;
+  padding: 16px 10px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sidebar-logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0efe8;
+  padding: 4px 10px 14px;
+  border-bottom: 1px solid #2e2e36;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.sidebar-logo span {
+  display: block;
+  font-size: 10px;
+  color: #5a5a62;
+  font-weight: 400;
+  font-family: 'Consolas', monospace;
+  margin-top: 2px;
+}
+.nav-group { font-size: 10px; color: #44444a; letter-spacing: .1em; text-transform: uppercase; padding: 10px 10px 4px; font-weight: 600; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #7a7a82;
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-item:hover { background: #1f1f24; color: #f0efe8; }
+.nav-item.active {
+  background: rgba(124,106,245,.12);
+  color: #9d8ff7;
+  border: 1px solid rgba(124,106,245,.2);
+}
+.nav-icon { font-size: 15px; }
+
+/* Conteúdo principal */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  padding: 10px 20px;
+  border-bottom: 1px solid #2e2e36;
+  background: #0e0e10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-title { font-size: 15px; font-weight: 600; color: #f0efe8; }
+.topbar-count { font-size: 11px; color: #5a5a62; font-family: 'Consolas', monospace; }
+.body { flex: 1; overflow: auto; padding: 16px 20px; display: flex; gap: 16px; background: #0e0e10; }
+
+/* Formulário */
+.form-col { width: 230px; flex-shrink: 0; }
+.card {
+  background: #17171a;
+  border: 1px solid #2e2e36;
+  border-radius: 12px;
+  padding: 16px;
+}
+.card-title { font-size: 13px; font-weight: 600; color: #f0efe8; margin-bottom: 14px; }
+.field { margin-bottom: 10px; }
+.field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #7a7a82;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.field input, .field select {
+  width: 100%;
+  padding: 7px 10px;
+  background: #1f1f24;
+  border: 1px solid #2e2e36;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #f0efe8;
+  font-family: 'Segoe UI', sans-serif;
+  outline: none;
+}
+.field input.error { border-color: rgba(255,107,107,.5); background: rgba(255,107,107,.05); }
+.field-error {
+  font-size: 10px;
+  color: #ff6b6b;
+  margin-top: 3px;
+  font-family: 'Consolas', monospace;
+}
+.field-ok {
+  font-size: 10px;
+  color: #5fd4a8;
+  margin-top: 3px;
+  font-family: 'Consolas', monospace;
+}
+.status-msg {
+  font-size: 11px;
+  min-height: 18px;
+  margin: 8px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.status-msg.ok { background: rgba(95,212,168,.1); color: #5fd4a8; border: 1px solid rgba(95,212,168,.2); }
+.status-msg.err { background: rgba(255,107,107,.1); color: #ff6b6b; border: 1px solid rgba(255,107,107,.2); }
+.status-msg.empty { background: transparent; border: none; }
+.btn-row { display: flex; gap: 8px; margin-top: 12px; }
+.btn {
+  padding: 7px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #2e2e36;
+  background: transparent;
+  color: #9a9aa8;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all .15s;
+}
+.btn:hover { background: #1f1f24; color: #f0efe8; }
+.btn.primary { background: #7c6af5; border-color: #7c6af5; color: #fff; }
+.btn.primary:hover { background: #6a58e0; }
+.btn.danger { color: #ff6b6b; border-color: rgba(255,107,107,.3); }
+.btn.danger:hover { background: rgba(255,107,107,.08); }
+
+/* Tabela */
+.table-col { flex: 1; min-width: 0; }
+.table-title { font-size: 13px; font-weight: 600; color: #f0efe8; margin-bottom: 10px; }
+.tbl-wrap {
+  border: 1px solid #2e2e36;
+  border-radius: 10px;
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th {
+  background: #141418;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5a5a62;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #2e2e36;
+  white-space: nowrap;
+}
+td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #1a1a20;
+  color: #d0cfc8;
+}
+tr:last-child td { border-bottom: none; }
+tr.selected td { background: rgba(124,106,245,.08); }
+tr:hover td { background: rgba(255,255,255,.02); }
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.pill.green { background: rgba(95,212,168,.12); color: #5fd4a8; border: 1px solid rgba(95,212,168,.2); }
+.pill.blue  { background: rgba(124,106,245,.12); color: #9d8ff7; border: 1px solid rgba(124,106,245,.2); }
+
+/* Footer do documento */
+footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 11px;
+  color: #2e2e36;
+  font-family: 'Consolas', monospace;
+}
+
+/* Seta de fluxo entre telas */
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 56px;
+  color: #44444a;
+  font-size: 12px;
+}
+.flow-arrow::before, .flow-arrow::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: #2e2e36;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">UI Design</div>
+  <h1>Prototipação das Telas</h1>
+  <p class="subtitle">Sistema 4 — Registro de Projetos · Fluxo completo das 3 telas</p>
+</header>
+
+<!-- ════════════════════════════════════════ TELA 1 ══ -->
+<div class="section-label">Tela 1 — Cadastro de Projetistas (Requisito R1)</div>
+<div class="window">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="win-title">Sistema de Registro de Projetos — v1.0</span>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-logo">Registro de<br>Projetos<span>Sistema 4 · v1.0</span></div>
+      <div class="nav-group">Cadastros</div>
+      <div class="nav-item active"><span class="nav-icon">👤</span> Projetistas</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Clientes</div>
+      <div class="nav-group">Projetos</div>
+      <div class="nav-item"><span class="nav-icon">📁</span> Novo Projeto</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Listar Projetos</div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title">Projetistas</span>
+        <span class="topbar-count">3 cadastrados · GET /projetistas</span>
+      </div>
+      <div class="body">
+        <div class="form-col">
+          <div class="card">
+            <div class="card-title">Novo projetista</div>
+            <div class="field">
+              <label>Código funcional *</label>
+              <input type="text" value="FUN-004">
+            </div>
+            <div class="field">
+              <label>Nome completo *</label>
+              <input type="text" value="Marina Costa">
+            </div>
+            <div class="field">
+              <label>Data de nascimento * (dd/MM/aaaa)</label>
+              <input type="text" value="12/08/1995">
+            </div>
+            <div class="status-msg ok">✓ Projetista cadastrado com sucesso.</div>
+            <div class="btn-row">
+              <button class="btn primary">Salvar</button>
+              <button class="btn">Limpar</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-col">
+          <div class="table-title">Projetistas cadastrados</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Código</th><th>Nome</th><th>Nascimento</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>FUN-001</td><td>Ana Lima</td><td>15/03/1988</td></tr>
+                <tr class="selected"><td>2</td><td>FUN-002</td><td>Carlos Souza</td><td>22/07/1990</td></tr>
+                <tr><td>3</td><td>FUN-003</td><td>João Pereira</td><td>05/11/1985</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn danger">Remover selecionado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">Cadastra projetistas → cadastra clientes</div>
+
+<!-- ════════════════════════════════════════ TELA 2 ══ -->
+<div class="section-label">Tela 2 — Cadastro de Clientes (Requisito R2)</div>
+<div class="window">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="win-title">Sistema de Registro de Projetos — v1.0</span>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-logo">Registro de<br>Projetos<span>Sistema 4 · v1.0</span></div>
+      <div class="nav-group">Cadastros</div>
+      <div class="nav-item"><span class="nav-icon">👤</span> Projetistas</div>
+      <div class="nav-item active"><span class="nav-icon">👥</span> Clientes</div>
+      <div class="nav-group">Projetos</div>
+      <div class="nav-item"><span class="nav-icon">📁</span> Novo Projeto</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Listar Projetos</div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title">Clientes</span>
+        <span class="topbar-count">2 cadastrados · GET /clientes</span>
+      </div>
+      <div class="body">
+        <div class="form-col">
+          <div class="card">
+            <div class="card-title">Novo cliente</div>
+            <div class="field">
+              <label>CPF * (somente 11 dígitos)</label>
+              <input type="text" value="98765432199">
+            </div>
+            <div class="field">
+              <label>Nome completo *</label>
+              <input type="text" value="Tech Beta Ltda">
+            </div>
+            <div class="field">
+              <label>Data de nascimento * (dd/MM/aaaa)</label>
+              <input type="text" value="10/04/1992">
+            </div>
+            <div class="status-msg empty"></div>
+            <div class="btn-row">
+              <button class="btn primary">Salvar</button>
+              <button class="btn">Limpar</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-col">
+          <div class="table-title">Clientes cadastrados</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>CPF</th><th>Nome</th><th>Nascimento</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>12345678901</td><td>Empresa Alpha</td><td>01/01/1980</td></tr>
+                <tr class="selected"><td>2</td><td>98765432100</td><td>Beta Corp</td><td>15/06/1995</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn danger">Remover selecionado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">Cadastra clientes → registra projeto vinculando ambos</div>
+
+<!-- ════════════════════════════════════════ TELA 3 ══ -->
+<div class="section-label">Tela 3 — Registro de Projetos com Validação R4 (Requisito R3 + R4)</div>
+<div class="window">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <span class="win-title">Sistema de Registro de Projetos — v1.0</span>
+  </div>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-logo">Registro de<br>Projetos<span>Sistema 4 · v1.0</span></div>
+      <div class="nav-group">Cadastros</div>
+      <div class="nav-item"><span class="nav-icon">👤</span> Projetistas</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Clientes</div>
+      <div class="nav-group">Projetos</div>
+      <div class="nav-item active"><span class="nav-icon">📁</span> Novo Projeto</div>
+      <div class="nav-item"><span class="nav-icon">📋</span> Listar Projetos</div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title">Registrar Projeto</span>
+        <span class="topbar-count">POST /projetos · Regra R4 ativa</span>
+      </div>
+      <div class="body">
+        <div class="form-col">
+          <div class="card">
+            <div class="card-title">Novo projeto</div>
+            <div class="field">
+              <label>Número do projeto *</label>
+              <input type="text" value="1043">
+            </div>
+            <div class="field">
+              <label>Descrição *</label>
+              <input type="text" value="Sistema de RH">
+            </div>
+            <div class="field">
+              <label>Data de início * (dd/MM/aaaa)</label>
+              <input type="text" class="error" value="01/01/2024">
+              <div class="field-error">⚠ R4: 160 dia(s) no passado. Use hoje ou data futura.</div>
+            </div>
+            <div class="field">
+              <label>Data de término * (dd/MM/aaaa)</label>
+              <input type="text" value="01/12/2025">
+            </div>
+            <div class="field">
+              <label>Projetista responsável *</label>
+              <select>
+                <option>[FUN-001] Ana Lima</option>
+                <option>[FUN-002] Carlos Souza</option>
+                <option>[FUN-003] João Pereira</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Cliente solicitante *</label>
+              <select>
+                <option>Empresa Alpha</option>
+                <option>Beta Corp</option>
+              </select>
+            </div>
+            <div class="status-msg err">⚠ Regra R4 violada: data de início inválida.</div>
+            <div class="btn-row">
+              <button class="btn primary">Registrar</button>
+              <button class="btn">Limpar</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-col">
+          <div class="table-title">Projetos registrados</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nº</th><th>Início</th><th>Término</th><th>Projetista</th><th>Cliente</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>1042</td>
+                  <td>10/06/2025</td>
+                  <td>30/06/2026</td>
+                  <td>Ana Lima</td>
+                  <td>Alpha</td>
+                  <td><span class="pill green">Ativo</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn danger">Remover selecionado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Sistema 4 · Registro de Projetos · Prototipação UI · Java 21 + Swing + SQLite</footer>
+
+</body>
+</html>
